@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- アプリアイコンを長押ししたときのメニュー。MainActivity が eldia://open/<画面> を受け取って該当のタブを開く -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="order"
+        android:enabled="true"
+        android:icon="@drawable/ic_sc_order"
+        android:shortcutShortLabel="@string/shortcut_order_short"
+        android:shortcutLongLabel="@string/shortcut_order_long"
+        android:shortcutDisabledMessage="@string/shortcut_disabled">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="eldia://open/order"
+            android:targetPackage="jp.eldia.hotel"
+            android:targetClass="jp.eldia.hotel.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="cleaning"
+        android:enabled="true"
+        android:icon="@drawable/ic_sc_cleaning"
+        android:shortcutShortLabel="@string/shortcut_cleaning_short"
+        android:shortcutLongLabel="@string/shortcut_cleaning_long"
+        android:shortcutDisabledMessage="@string/shortcut_disabled">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="eldia://open/cleaning"
+            android:targetPackage="jp.eldia.hotel"
+            android:targetClass="jp.eldia.hotel.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="facility_new"
+        android:enabled="true"
+        android:icon="@drawable/ic_sc_facility"
+        android:shortcutShortLabel="@string/shortcut_facility_short"
+        android:shortcutLongLabel="@string/shortcut_facility_long"
+        android:shortcutDisabledMessage="@string/shortcut_disabled">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="eldia://open/facility-new"
+            android:targetPackage="jp.eldia.hotel"
+            android:targetClass="jp.eldia.hotel.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="fridge"
+        android:enabled="true"
+        android:icon="@drawable/ic_sc_fridge"
+        android:shortcutShortLabel="@string/shortcut_fridge_short"
+        android:shortcutLongLabel="@string/shortcut_fridge_long"
+        android:shortcutDisabledMessage="@string/shortcut_disabled">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="eldia://open/fridge"
+            android:targetPackage="jp.eldia.hotel"
+            android:targetClass="jp.eldia.hotel.MainActivity" />
+    </shortcut>
+</shortcuts>

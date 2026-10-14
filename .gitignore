@@ -1,0 +1,15 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build/
+/app/build/
+/captures
+.externalNativeBuild
+.cxx
+
+# 配布用の署名鍵（Git に入れない）
+keystore.properties
+*.jks
+*.keystore

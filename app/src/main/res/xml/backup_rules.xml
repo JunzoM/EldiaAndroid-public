@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 以前のバックアップ：冷蔵庫の暗証番号のキャッシュは含めない -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="eldia_fridge_pin.xml" />
+</full-backup-content>

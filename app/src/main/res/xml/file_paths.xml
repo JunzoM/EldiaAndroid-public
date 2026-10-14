@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- カメラで撮った写真の一時保存先（Photos.newCameraFile） -->
+    <cache-path name="photos" path="photos/" />
+    <!-- LINE 報告で共有する写真（IssueLineShare） -->
+    <cache-path name="share" path="share/" />
+</paths>

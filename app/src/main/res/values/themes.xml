@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 画面の中身は Compose の Material 3 テーマで描く。ここは起動時の背景だけ -->
+    <style name="Theme.Eldia" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/eldia_bg</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>

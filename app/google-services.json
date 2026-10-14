@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "230402002228",
+    "project_id": "hotel-eldia",
+    "storage_bucket": "hotel-eldia.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:230402002228:android:0e0ded46cc83b6b73c2961",
+        "android_client_info": {
+          "package_name": "jp.eldia.hotel"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAaC8mwylOjHL3owKYYucy5_lVz-RSpOco"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

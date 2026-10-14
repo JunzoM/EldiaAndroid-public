@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ELDIA 業務用</string>
+
+    <!-- アプリアイコンの長押しメニュー（ショートカット） -->
+    <string name="shortcut_order_short">発注する</string>
+    <string name="shortcut_order_long">発注する（両店舗）</string>
+    <string name="shortcut_cleaning_short">清掃記録</string>
+    <string name="shortcut_cleaning_long">清掃記録をつける</string>
+    <string name="shortcut_facility_short">不具合を登録</string>
+    <string name="shortcut_facility_long">設備の不具合を登録</string>
+    <string name="shortcut_fridge_short">冷蔵庫</string>
+    <string name="shortcut_fridge_long">冷蔵庫の在庫・期限</string>
+    <string name="shortcut_disabled">このショートカットは使えません</string>
+
+    <!-- ホーム画面のウィジェット -->
+    <string name="widget_name">今日やること</string>
+    <string name="widget_description">今日やることと完了状況を表示します（アプリを開くと更新）</string>
+</resources>

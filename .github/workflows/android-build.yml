@@ -1,0 +1,143 @@
+# Android のビルド確認
+# ・PR を出したとき／更新したとき：1回だけビルド（作業ブランチの push では動かさない＝二重実行を防ぐ）
+# ・main に入ったとき：ビルド＋（[play] 付きなら）Google Play 社内テストへ配信
+# ・説明文（.md）だけの変更ではビルドしない
+name: Android build
+
+on:
+  push:
+    branches: ["main"]
+    paths-ignore: ["**.md", "docs/**"]
+  pull_request:
+    paths-ignore: ["**.md", "docs/**"]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Google Play の社内テストに公開する"
+        type: boolean
+        default: false
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Debug ビルド（コンパイル確認）
+        run: ./gradlew --no-daemon assembleDebug 2>&1 | tee build-debug.log; exit ${PIPESTATUS[0]}
+
+      - name: Release ビルド（R8 の確認・署名なし）
+        run: ./gradlew --no-daemon assembleRelease 2>&1 | tee build-release.log; exit ${PIPESTATUS[0]}
+
+      # エラーを注釈（annotation）に出す。ログ本体を開かなくても API から読めるようにするため
+      - name: エラーを注釈に出す
+        if: failure()
+        run: |
+          for f in build-debug.log build-release.log build-bundle.log; do
+            [ -f "$f" ] || continue
+            grep -E '^e: |^w: .*error|What went wrong|^> |Exception|ERROR:|error:|Dependency |requires |compile against|depend on it' "$f" \
+              | grep -v '^w: ' | grep -v '^> Task' | sed 's#file://'"$GITHUB_WORKSPACE"'/##' | head -120 > errs.txt || true
+            [ -s errs.txt ] || tail -60 "$f" > errs.txt
+            # 1件の注釈にまとめる（改行は %0A）
+            msg=$(sed -e 's/%/%25/g' errs.txt | awk 'BEGIN{ORS="%0A"}{print}')
+            echo "::error title=$f::$msg"
+          done
+
+      # 配布用：署名した AAB（Google Play にアップロードする形式）を作る。Secrets が登録されているときだけ
+      - name: 署名鍵を用意
+        id: sign
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          C_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+          C_ALIAS: ${{ secrets.KEY_ALIAS }}
+          C_KEYPASS: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          # どの Secret が見えているか（中身は出さない）
+          missing=""
+          [ -z "$KEYSTORE_BASE64" ] && missing="$missing KEYSTORE_BASE64"
+          [ -z "$C_PASS" ] && missing="$missing KEYSTORE_PASSWORD"
+          [ -z "$C_ALIAS" ] && missing="$missing KEY_ALIAS"
+          [ -z "$C_KEYPASS" ] && missing="$missing KEY_PASSWORD"
+          if [ -n "$missing" ]; then echo "::warning title=署名用 Secret が見つかりません::$missing"; fi
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 署名付き AAB（Play 用）
+        if: steps.sign.outputs.ok == 'true'
+        env:
+          SIGNING_STORE_FILE: ${{ runner.temp }}/upload.jks
+          SIGNING_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          VERSION_CODE: ${{ github.run_number }}
+        run: ./gradlew --no-daemon bundleRelease 2>&1 | tee build-bundle.log; exit ${PIPESTATUS[0]}
+
+      # 容量上限（1回約70MB）を超えないよう保存は3日だけ
+      # 保存容量の上限に達しても、Play への公開は止めない（公開はローカルの AAB を使う）
+      - name: AAB を保存
+        if: steps.sign.outputs.ok == 'true'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: eldia-release-aab-${{ github.run_number }}
+          path: app/build/outputs/bundle/release/*.aab
+          retention-days: 3
+
+      # Google Play 社内テストへ自動公開。
+      # main で「コミットメッセージに [play] を含む」か「手動実行で publish にチェック」のときだけ。
+      # Secret PLAY_SERVICE_ACCOUNT_JSON（サービスアカウントの JSON 鍵）が必要
+      - name: 公開するか判定
+        id: play
+        if: steps.sign.outputs.ok == 'true' && github.ref == 'refs/heads/main'
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          MSG: ${{ github.event.head_commit.message }}
+          WANT: ${{ inputs.publish }}
+        run: |
+          want=false
+          if [ "$WANT" = "true" ]; then want=true; fi
+          case "$MSG" in *"[play]"*) want=true ;; esac
+          if [ "$want" = "true" ]; then
+            if [ -z "$PLAY_JSON" ]; then
+              echo "::warning title=Google Play に公開できません::Secret PLAY_SERVICE_ACCOUNT_JSON が登録されていません"
+            else
+              echo "go=true" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Google Play 社内テストに公開
+        if: steps.play.outputs.go == 'true'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: jp.eldia.hotel
+          releaseFiles: app/build/outputs/bundle/release/*.aab
+          track: internal
+          status: completed
+
+      - name: Lint（エラーのみで失敗）
+        run: ./gradlew --no-daemon lintDebug
+        continue-on-error: true
+
+      - name: APK を保存
+        if: success()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: eldia-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 3

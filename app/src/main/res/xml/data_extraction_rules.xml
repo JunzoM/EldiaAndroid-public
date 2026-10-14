@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12 以降のバックアップ・機種変更時の移行：冷蔵庫の暗証番号のキャッシュは含めない -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="eldia_fridge_pin.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="eldia_fridge_pin.xml" />
+    </device-transfer>
+</data-extraction-rules>
